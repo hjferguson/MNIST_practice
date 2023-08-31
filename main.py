@@ -1,7 +1,9 @@
 from sklearn.datasets import fetch_openml
 from sklearn.linear_model import SGDClassifier
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, cross_val_predict
 from sklearn.dummy import DummyClassifier
+from sklearn.metrics import confusion_matrix, f1_score, precision_recall_curve
+
 
 import matplotlib.pyplot as plt
 
@@ -36,3 +38,19 @@ sdg_clf.fit(X_train, y_train_5)
 # #prints: [0.90965 0.90965 0.90965]
 # #10% of the data is 5s, so to guess false, the model would be right 90% of the time. 
 # #shows why accuracy isn't a good performance marker for classifiers
+
+#better to use confusion matrix for classifiers
+y_train_pred = cross_val_predict(sdg_clf, X_train, y_train_5, cv=3) #performs k-fold prediction like cross_val_score, but returns predictions instead of scores
+cm = confusion_matrix(y_train_5, y_train_pred)
+print(cm)
+
+#f1 combines recall and precision
+print(f1_score(y_train_5, y_train_pred))
+
+#increasing percision, lowers recall and vice versa
+y_scores = cross_val_predict(sdg_clf, X_train, y_train_5, cv=3, method='decision_function')
+precisions, recalls, thresholds = precision_recall_curve(y_train_5, y_scores)
+plt.plot(thresholds, precisions[:-1], "b--", label = "Precision", linewidth=2)
+plt.plot(thresholds, recalls[:-1], "g-", label='Recall', linewidth=2)
+plt.vlines(thresholds, 0, 1.0, "k", "dotted", label='Threshold')
+plt.show()
